@@ -36,7 +36,8 @@ python的pandas帮了大忙，其内部的数据结构为DataFrame(数据矩阵)
 2. 修改对应的配置文件诸如：simple_merge.py
 3. 修改配置python文件中的
 	pDeal = DataDealModel('data/', needPrint = False, needInterFile = True)
-
-其中'data/'表示excel文件存取地址，可自定义，目录不存在请自己建立；needPrint参数，表示是否打印出中间数据（内存中），帮助调试；needInterFile参数，表示是否每一次内存数据操作之后，都进行excel存储(False为不存，需最后配置save参数)
+ 	- 其中'data/'表示excel文件存取地址，可自定义，目录不存在请自己建立；
+	- needPrint参数，表示是否打印出中间数据（内存中），帮助调试；
+	- needInterFile参数，表示是否每一次内存数据操作之后，都进行excel存储(False为不存，需最后配置save参数)；
 4. 参考reference.docx文档,修改其他配置，诸如mysql的db、如何进行merge操作、是否需要数据筛选、存储到哪个文件等等。
 5. 执行脚本，诸如: python simple_merge.py 即可
