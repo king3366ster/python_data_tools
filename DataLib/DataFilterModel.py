@@ -54,7 +54,7 @@ class DataFilterModel:
         if re.search(r'\{[^\{\}]+\}', method): # { } 包裹的特殊变量 {date|mean}, {2015-9-11 19:01:1}
             varKey = self._removeBraceOuter(method) # 可能存在诸如 timefunc:{date>{2015-9-11}
             varKey = self._removeBrace(varKey)
-            if srcVar.has_key(varKey):      # 统计所得变量
+            if varKey in srcVar:      # 统计所得变量
                 cmpVar = srcVar[varKey]
                 # print 'compare variable:',cmpVar
             elif re.search(r'\d+\-\d+\-\d+\s+\d+\:\d+\:\d+', varKey): # 时间变量
@@ -286,7 +286,7 @@ class DataFilterModel:
         # print operation
         exec(operation)
         if tmpCol.dtype == 'timedelta64[ns]':
-            tmpCol = self.transformNpDatetime(tmpCol)
+            tmpCol = tmpCol / np.timedelta64(1, 's')
         df.insert(colnum, keydest, tmpCol)
         return df
 

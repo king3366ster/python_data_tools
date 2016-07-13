@@ -11,12 +11,12 @@ class DataMergeModel:
         self.path = path
 
     def runMerge(self, df1, df2, options = dict()):
-        if options.has_key('type'):
+        if 'type' in options:
             method = options['type']
         else:
             method = 'merge'
 
-        if options.has_key('how'):
+        if 'how' in options:
             how = options['how']
         else:
             if method == 'merge':
@@ -26,13 +26,18 @@ class DataMergeModel:
             else:
                 how = 'inner'
 
-        if options.has_key('ignore_index'):
+        if 'ignore_index' in options:
             ignore_index = options['ignore_index']
         else:
             ignore_index = True
 
+        if 'axis' in options:
+            axis = options['axis']
+        else:
+            axis = 0
+
         onList = []
-        if options.has_key('relation'):
+        if 'relation' in options:
             relations = options['relation']
             for item in relations:
                 if item.find('==') >= 0:
@@ -52,7 +57,7 @@ class DataMergeModel:
             else:
                 return pd.merge(df1, df2, how = how)
         elif method == 'concat':
-            return pd.concat([df1, df2], join = how, ignore_index = True,)
+            return pd.concat([df1, df2], join = how, axis = axis, ignore_index = True)
 
     
 ##    merge(left, right, how='inner', on=None, left_on=None, right_on=None,

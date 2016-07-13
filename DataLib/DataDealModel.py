@@ -74,10 +74,10 @@ class DataDealModel:
         for dataNode in prepareData:
             dataBuild = DataBuildModel(self.path, logPath = self.logPath)
             
-            if dataNode.has_key('from_type'):
+            if 'from_type' in dataNode:
                 from_type = dataNode['from_type']
             else:
-                if dataNode.has_key('sql_db'):
+                if 'sql_db' in dataNode:
                     from_type = 'mysql'
                 else:
                     from_type = 'excel'
@@ -85,7 +85,7 @@ class DataDealModel:
             print 'init target:', target, ' type:', from_type
             if from_type == 'mysql':
                 query = dataNode['query']
-                if dataNode.has_key('use_SQLAlchemy'):
+                if 'use_SQLAlchemy' in dataNode:
                     use_SQLAlchemy = dataNode['use_SQLAlchemy']
                 else:
                     use_SQLAlchemy = True
@@ -102,7 +102,7 @@ class DataDealModel:
                 df = dataBuild.csvReader(target)
                 self.dataMap[target] = df
             elif from_type == 'excel':
-                if dataNode.has_key('sheet_name'):
+                if 'sheet_name' in dataNode:
                     sheetName = dataNode['sheet_name']
                 else:
                     sheetName = 'Sheet1'
@@ -133,7 +133,7 @@ class DataDealModel:
                         srcName = srcNode
 
                     # 获取节点矩阵
-                    if self.dataMap.has_key(srcName):
+                    if srcName in self.dataMap:
                         df = self.dataMap[srcName]
                     else:
                         df = dataBuild.excelReader(srcName)
@@ -144,7 +144,7 @@ class DataDealModel:
                         srcDeal = srcNode[1]
                         srcVar = dict()
                         # 数据统计
-                        if srcDeal.has_key('statistic'):
+                        if'statistic' in  srcDeal:
                             print '== start statistic ', srcIndex, ' ==' 
                             for method in srcDeal['statistic']:
                                 if method == '':
@@ -153,7 +153,7 @@ class DataDealModel:
                                 srcVar[method] = result
                                 print '!! ', method, ' - result: ', srcVar[method]
                         # 过滤器
-                        if srcDeal.has_key('filter'):
+                        if'filter' in  srcDeal:
                             print '== start filter ', srcIndex, ' ==' 
                             for method in srcDeal['filter']:
                                 if method == '':
@@ -172,7 +172,7 @@ class DataDealModel:
                     srcDfList.append(df.copy(deep = True))
 
                 # 合并节点
-                if dataNode.has_key('method'):
+                if 'method' in dataNode:
                     mergeMethod = dataNode['method']
                 else:
                     mergeMethod = dict()
@@ -204,17 +204,17 @@ class DataDealModel:
             srcName = dataNode['src']       # 源节点
             print '//== save target:', target, '; source:', srcName   
 
-            if self.dataMap.has_key(srcName):
+            if srcName in self.dataMap:
                 df = self.dataMap[srcName]
             else:
                 df = dataBuild.excelReader(srcName)
             
-            if dataNode.has_key('sql_db'):
+            if 'sql_db' in dataNode:
                 from_type = 'mysql'
             else:
                 from_type = 'excel'
 
-            if dataNode.has_key('if_exists'):
+            if 'if_exists' in dataNode:
                 if_exists = dataNode['if_exists']
             else:
                 if_exists = 'fail'
@@ -244,9 +244,9 @@ class DataDealModel:
             elif from_type == 'mysql':
                 sql_db = dataNode['sql_db']
                 unique_key = None
-                if dataNode.has_key('unique_key'):
+                if 'unique_key' in dataNode:
                     unique_key = dataNode['unique_key']
-                if dataNode.has_key('need_datetime'):
+                if 'need_datetime' in dataNode:
                     need_datetime = dataNode['need_datetime']
                 else:
                     need_datetime = True
