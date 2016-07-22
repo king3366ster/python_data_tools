@@ -33,29 +33,29 @@ class DataBuildModel:
         self.logger = DataLoggingModel.initLogger(logPath)
 
     def mysqlConnect(self, sqlCfg, use_SQLAlchemy = True):
-        if sqlCfg.has_key('host'):
+        if 'host' in sqlCfg:
             _host = sqlCfg['host']
         else:
             _host = '127.0.0.1'
         self._host = _host
 
-        if sqlCfg.has_key('user'):
+        if 'user' in sqlCfg:
             _user = sqlCfg['user']
         else:
             _user = 'root'
         self._user = _user
 
-        if sqlCfg.has_key('pwd'):
+        if 'pwd' in sqlCfg:
             _pwd = sqlCfg['pwd']
         else:
             _pwd = ''
         self._pwd = _pwd
        
-        if sqlCfg.has_key('db'):
+        if 'db' in sqlCfg:
             _db = sqlCfg['db']
         self._db = _db
 
-        if sqlCfg.has_key('port'):
+        if 'port' in sqlCfg:
             _port = sqlCfg['port']
         else:
             _port = 3306
@@ -155,14 +155,14 @@ class DataBuildModel:
                         tmpType = DateTime
                     else:
                     	if re.search(r'id$', colName):
-                    		tmpType = BIGINT
+                    	    tmpType = BIGINT
                     	elif re.search(r'(updated|created)', colName):
-                    		tmpType = TIMESTAMP
+                    	    tmpType = TIMESTAMP
                     	else:
-                        	tmpType = String(128)
-                    if unique_key_map.has_key(colName) and len(unique_key_list) == 1:
+                            tmpType = String(128)
+                    if colName in unique_key_map and len(unique_key_list) == 1:
                         colList.append(Column(colName, tmpType, unique = True, nullable = False, autoincrement = False)) 
-                    elif unique_key_map.has_key(colName):
+                    elif colName in unique_key_map:
                         colList.append(Column(colName, tmpType, nullable = False)) 
                     else:
                         colList.append(Column(colName, tmpType))
@@ -197,7 +197,7 @@ class DataBuildModel:
             for colName in tb_model.c: 
                 tb_cols[str(colName).replace(tb_name + '.', '')] = True
             for colName in df_tmp.columns:
-                if tb_cols.has_key(str(colName)):
+                if str(colName) in tb_cols:
                     pass
                 else:
                     df_tmp = df_tmp.drop(colName, axis=1)
@@ -209,9 +209,9 @@ class DataBuildModel:
 
                 if if_exists == 'replace':
                     dtime = datetime.datetime.now()
-                    if not insert_value.has_key('updated_at') and tb_cols.has_key('updated_at'):
+                    if 'updated_at' not in insert_value and 'updated_at' not in tb_cols:
                         insert_value['updated_at'] = dtime
-                    if not insert_value.has_key('created_at') and tb_cols.has_key('created_at'):
+                    if 'created_at' not in insert_value and 'created_at' not in tb_cols:
                         insert_value['created_at'] = dtime
                     try:
                         tb_model.insert(values = insert_value).execute()
@@ -228,7 +228,7 @@ class DataBuildModel:
                     tmp_list = []
                     for ukey in unique_key_list:
                         if need_datetime == True and (ukey == 'updated_at' or ukey == 'created_at'):
-                            if not insert_value.has_key(ukey):
+                            if ukey not in insert_value:
                                 continue
                         if isinstance(dt_slice[ukey], unicode):
                             compare_str = dt_slice[ukey].replace('\"','\\\"')
@@ -246,7 +246,7 @@ class DataBuildModel:
 
                     # 涉及查询，位置不能换
                     dtime = datetime.datetime.now()
-                    if not insert_value.has_key('updated_at') and tb_cols.has_key('updated_at'):
+                    if 'updated_at' not in insert_value and 'updated_at' not in tb_cols and need_datetime:
                         insert_value['updated_at'] = dtime
 
                     if dt_count > 0:    # 记录已存在
@@ -266,7 +266,7 @@ class DataBuildModel:
                                 self.logger.error(str(insert_value) + ' |_| update error ' + str(what))
 
                     elif if_exists != 'delete':   # 记录不存在，且type不为delete，执行insert
-                        if not insert_value.has_key('created_at') and tb_cols.has_key('created_at'):
+                        if 'created_at' not in insert_value and 'created_at' in tb_cols:
                             insert_value['created_at'] = dtime
                         try:
                             tb_model.insert(values = insert_value).execute()
@@ -308,7 +308,7 @@ class DataBuildModel:
         return df            
     
     def excelWriter(self, df, node = '1', sheet_name = 'Sheet1', encoding = 'utf-8'):
-        df.to_excel(self.path + node + '.xlsx', sheet_name = sheet_name, encoding = encoding)
+        df.to_excel('%s%s.xlsx' % (self.path, unicode(node)), sheet_name = sheet_name, encoding = encoding)
 
     def excelWriterXls(self, df, node = '1', sheet_name = 'Sheet1', encoding = 'utf-8'):
         fileHandle = xlwt.Workbook()
@@ -328,7 +328,7 @@ class DataBuildModel:
                 #     if len(tmpValue) > 1000:
                 #         tmpValue = tmpValue[0:1000]
                 sheet1.write(i + 1, j + 1, tmpValue)
-        fileHandle.save(self.path + node + '.xls')
+        fileHandle.save('%s%s.xls' % (self.path, unicode(node)))
 
     def excelWriterRaw(self, df, node = '1', if_exists = 'replace', sheet_name = 'Sheet1', encoding = 'utf-8'):
         if if_exists == 'append' or if_exists == 'append_ignore':
@@ -369,7 +369,7 @@ class DataBuildModel:
                 except Exception, what:
                     # print 'encoding error: ', col, index_row, what
                     self.logger.error('write excel raw error: ' + str(col) + ' ' + str(index_row) + ' |_| reading error ' + str(what))
-        wb.save(filename = self.path + node + '.xlsx')
+        wb.save(filename = '%s%s.xlsx' % (self.path, unicode(node)))
 
     def excelReEncoding(self, node):
         df = self.excelReader(node, fmt = False)
