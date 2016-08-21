@@ -103,8 +103,10 @@ class DataFilterModel:
             value = cmpVar
         else:
             value = temp[2]
-                
-        if str(value).find('"') >= 0:    #字符串类型
+        
+        if isinstance(value, unicode) or isinstance(value, str):
+            value = value.replace('"','')
+        elif str(value).find('"') >= 0:    #字符串类型
             value = value.replace('"','')
         else:
             value = float(value)
