@@ -3,13 +3,13 @@
 import time, datetime
 
 class DataTimeModel():
-    # 如字符串2016-01-21 => 时间戳
+    # 如时间戳 => 字符串2016-01-21
     def tranformTimeStamp(self, timeStamp):
         timeArray = time.localtime(timeStamp)
-        otherStyleTime = time.strftime("%Y-%m-%d", timeArray)
-        return otherStyleTime
+        timeString = time.strftime("%Y-%m-%d %H:%M:%S", timeArray)
+        return timeString
 
-    # 如时间戳 => 字符串2016-01-21
+    # 如字符串2016-01-21 => 时间戳
     def tranformTimeString(self, timeString):
         timeArray = time.strptime(timeString, "%Y-%m-%d %H:%M:%S")
         timeStamp = int(time.mktime(timeArray))
