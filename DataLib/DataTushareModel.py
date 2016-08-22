@@ -3,6 +3,9 @@
 import numpy as np
 import pandas as pd
 import tushare as ts
+from DataTimeModel import DataTimeModel
+
+dataTime = DataTimeModel()
 
 class DataTushareModel:
     def __init__(self):
@@ -24,12 +27,17 @@ class DataTushareModel:
     # ktype：数据类型，D=日k线 W=周 M=月 5=5分钟 15=15分钟 30=30分钟 60=60分钟，默认为D
     # retry_count：当网络异常后重试次数，默认为3
     # pause:重试时停顿秒数，默认为0
-    def get_hist_data(self, code, start='', end='', ktype='D'):
+    def get_hist_data(self, code, start = None, end = None, ktype='D'):
+        if end is None:
+            end = dataTime.datetimeRelative(delta = 1)
+        if start is None:
+            start = dataTime.datetimeRelative(base = end, delta = -20)
         df = ts.get_hist_data(code, start, end, ktype)
         df = self.format_date_index(df)
         return df
 
 if __name__ =='__main__':
     t = DataTushareModel()
-    print t.get_hist_data('600000', start='2015-01-05', end='2015-02-09')
+##    print t.get_hist_data('600000', start='2015-01-05', end='2015-02-09')
+    print t.get_hist_data('600000')
 
