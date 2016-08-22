@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import os, re, time, datetime
-import math, random
+import math, random, pdb
 import numpy as np
 import pandas as pd
 
@@ -48,7 +48,7 @@ class DataFilterModel:
         else:
             func = 'operator'   # 默认方法
             method = method
-            
+        
         # 特殊变量的计算组装
         cmpVar = None
         if re.search(r'\{[^\{\}]+\}', method): # { } 包裹的特殊变量 {date|mean}, {2015-9-11 19:01:1}
@@ -90,40 +90,80 @@ class DataFilterModel:
     # 例如'A > 2',  ' E<{A|mean} ',  ' C=”colume” ',     'operator:{A >= 2}'
     def filterOperator(self, df, method, cmpVar = None):
         method = self._removeBraceOuter(method)
-        temp = re.split('\s*(>|<|=|!)+\s*',method)
-        key = temp[0]
 
-        try:
-            df_key = df[key]
-        except Exception, what:
-            print '!! Error: DataFrame doesn\'t has key ', what
-            return df
-        
-        if cmpVar is not None:
-            value = cmpVar
-        else:
-            value = temp[2]
-        
-        if isinstance(value, unicode) or isinstance(value, str):
-            value = value.replace('"','')
-        elif str(value).find('"') >= 0:    #字符串类型
-            value = value.replace('"','')
-        else:
-            value = float(value)
-            
-        if method.find('>=') >= 0:
-            return df[df[key]>=value]
-        elif method.find('<=') >= 0:
-            return df[df[key]<=value]
-        elif method.find('!=') >= 0:
-            return df[df[key]!=value]
-        elif method.find('=') >= 0:
-            return df[df[key]==value]
-        if method.find('>') >= 0:
-            return df[df[key]>value]
-        elif method.find('<') >= 0:
-            return df[df[key]<value]
+        # '(mx = "qwe") & ((zc > 2016-05-01) | (wed = zxc))' => ( df["mx"]= "qwe") & (( df["zc"]> 2016-05-01) | ( df["wed"]= zxc))
+        method = unicode(method)
+        tmpChar = ''
+        tmpCharPre = ''
+        tmpState = 'start'
+        tmpStrState = False
+
+        for i in range(0, len(method)):
+            iChar = method[i]
+                
+            if re.match('[\)]', iChar):
+                tmpState = 'start'
+            elif re.match('[<=>]', iChar):
+                tmpState = 'end'
+            if tmpState == 'end':
+                if tmpChar != '':
+                    tmpChar = 'df[u\'%s\']' % tmpChar
+                    tmpCharPre += tmpChar
+                    tmpChar = ''
+                if iChar == '\"' or iChar == '\'':
+                    if tmpStrState == False:
+                        tmpStrState = True
+                        iChar = 'u' + iChar
+                    else:
+                        tmpStrState = False
+                tmpCharPre += iChar
+            elif tmpState == 'start':
+                if re.match('[\(\)\s&\|]', iChar):
+                    tmpCharPre += iChar
+                else:
+                    tmpChar += iChar
+
+        if tmpChar != '':
+            tmpChar = 'df[u\'%s\']' % tmpChar
+            tmpCharPre += tmpChar
+
+        operation = 'df=df[%s]' % tmpCharPre
+        exec(operation)
         return df
+        # temp = re.split('\s*(>|<|=|!)+\s*',method)
+        # key = temp[0]
+
+        # try:
+        #     df_key = df[key]
+        # except Exception, what:
+        #     print '!! Error: DataFrame doesn\'t has key ', what
+        #     return df
+        
+        # if cmpVar is not None:
+        #     value = cmpVar
+        # else:
+        #     value = temp[2]
+        
+        # if isinstance(value, unicode) or isinstance(value, str):
+        #     value = value.replace('"','')
+        # elif str(value).find('"') >= 0:    #字符串类型
+        #     value = value.replace('"','')
+        # else:
+        #     value = float(value)
+            
+        # if method.find('>=') >= 0:
+        #     return df[df[key]>=value]
+        # elif method.find('<=') >= 0:
+        #     return df[df[key]<=value]
+        # elif method.find('!=') >= 0:
+        #     return df[df[key]!=value]
+        # elif method.find('=') >= 0:
+        #     return df[df[key]==value]
+        # if method.find('>') >= 0:
+        #     return df[df[key]>value]
+        # elif method.find('<') >= 0:
+        #     return df[df[key]<value]
+        # return df
 
     # 'in:{A:[1, 3, 5]}'
     def filterIn(self, df, method):
