@@ -87,4 +87,6 @@ if __name__ =='__main__':
     t = DataTushareModel()
 ##    print t.get_hist_data('600000', start='2015-01-05', end='2015-02-09')
     print t.get_hist_data('600000')
+    print t.get_h_data('600000')
+    
 
