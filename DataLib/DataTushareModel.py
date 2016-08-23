@@ -31,7 +31,7 @@ class DataTushareModel:
         df_new['datetime'] = pd.to_datetime(df_new['datetime'])
         df_new['time'] = pd.to_timedelta(df_new['time'])
         df_new['datetime'] = df_new['datetime'] + df_new['time']
-        df_new = df_new.sort(['datetime'], ascending=[1])
+        df_new = df_new.sort_values(['datetime'], ascending=[True])
         del df_new['time']
         
         return df_new
