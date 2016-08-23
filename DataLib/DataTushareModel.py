@@ -116,7 +116,7 @@ class DataTushareModel:
     def get_tick_data(self, code, t_date = None):
         if t_date is None:
             t_date = dataTime.datetimeRelative(delta = 0)
-            t_date = t_date.replace(' 00:00:00', '')
+        t_date = t_date.replace(' 00:00:00', '')
         df = ts.get_tick_data(code, date = t_date)
         df = self.format_date_to_datetime(df, t_date = t_date)
         return df
@@ -129,6 +129,6 @@ if __name__ =='__main__':
 ##    print ts.get_stock_basics()
     # print ts.get_today_all()
 ##    print t.get_tick_data('600000', t_date='2016-08-23')
-    print t.get_tick_data('600000')
+    print t.get_tick_data('600000', t_date = '2011-01-06 00:00:00')
     
 
