@@ -17,8 +17,10 @@ class DataTushareModel:
 
         df.insert(0, 'date', pd.to_datetime(df.index))
 ##        df.rename(columns={'dtime': 'date'}, inplace=True)
-        df = pd.DataFrame(data=df.values, index=id_series, columns=df.columns.tolist())
-        return df
+        df_new = pd.DataFrame(data=df.values, index=id_series, columns=df.columns.tolist())
+        for col in df_new.columns: # 保持类型
+            df_new[col] = df_new[col].astype(df[col].dtype)
+        return df_new
 
 # 历史行情
     # 参数说明：
@@ -87,6 +89,6 @@ if __name__ =='__main__':
     t = DataTushareModel()
 ##    print t.get_hist_data('600000', start='2015-01-05', end='2015-02-09')
     print t.get_hist_data('600000')
-    print t.get_h_data('600000')
+##    print t.get_h_data('600000')
     
 
