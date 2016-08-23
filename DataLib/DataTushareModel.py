@@ -22,6 +22,19 @@ class DataTushareModel:
             df_new[col] = df_new[col].astype(df[col].dtype)
         return df_new
 
+    def format_date_to_datetime(self, df, t_date = None):
+        if t_date is None:
+            t_date = dataTime.datetimeRelative(delta = 0)
+            t_date = t_date.replace(' 00:00:00', '')
+        df_new = df.copy()
+        df_new.insert(0, 'datetime', t_date)
+        df_new['datetime'] = pd.to_datetime(df_new['datetime'])
+        df_new['time'] = pd.to_timedelta(df_new['time'])
+        df_new['datetime'] = df_new['datetime'] + df_new['time']
+        df_new = df_new.sort(['datetime'], ascending=[1])
+        del df_new['time']
+        
+        return df_new
 # 历史行情
     # 参数说明：
         # code：股票代码，即6位数字代码，或者指数代码（sh=上证指数 sz=深圳成指 hs300=沪深300指数 sz50=上证50 zxb=中小板 cyb=创业板）
@@ -85,10 +98,37 @@ class DataTushareModel:
         df = self.format_date_index(df)
         return df
 
+# 历史分笔
+    # 参数说明：
+        # code：股票代码，即6位数字代码
+        # date：日期，格式YYYY-MM-DD
+        # retry_count : int, 默认3,如遇网络等问题重复执行的次数
+        # pause : int, 默认 0,重复请求数据过程中暂停的秒数，防止请求间隔时间太短出现的问题
+
+    # 返回值说明：
+        # time：时间
+        # price：成交价格
+        # change：价格变动
+        # volume：成交手
+        # amount：成交金额(元)
+        # type：买卖类型【买盘、卖盘、中性盘】
+
+    def get_tick_data(self, code, t_date = None):
+        if t_date is None:
+            t_date = dataTime.datetimeRelative(delta = 0)
+            t_date = t_date.replace(' 00:00:00', '')
+        df = ts.get_tick_data(code, date = t_date)
+        df = self.format_date_to_datetime(df, t_date = t_date)
+        return df
+
 if __name__ =='__main__':
     t = DataTushareModel()
 ##    print t.get_hist_data('600000', start='2015-01-05', end='2015-02-09')
-    print t.get_hist_data('600000')
+##    print t.get_hist_data('600000')
 ##    print t.get_h_data('600000')
+##    print ts.get_stock_basics()
+    # print ts.get_today_all()
+##    print t.get_tick_data('600000', t_date='2016-08-23')
+    print t.get_tick_data('600000')
     
 
