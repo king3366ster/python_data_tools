@@ -25,7 +25,7 @@ class DataTushareModel:
     def format_date_to_datetime(self, df, t_date = None):
         if t_date is None:
             t_date = dataTime.datetimeRelative(delta = 0)
-            t_date = t_date.replace(' 00:00:00', '')
+        t_date = t_date.replace(' 00:00:00', '')
         df_new = df.copy()
         df_new.insert(0, 'datetime', t_date)
         df_new['datetime'] = pd.to_datetime(df_new['datetime'])
@@ -129,6 +129,6 @@ if __name__ =='__main__':
 ##    print ts.get_stock_basics()
     # print ts.get_today_all()
 ##    print t.get_tick_data('600000', t_date='2016-08-23')
-    print t.get_tick_data('600000', t_date = '2011-01-06 00:00:00')
+    print t.get_tick_data('600000', t_date = '2013-01-07 00:00:00')
     
 
