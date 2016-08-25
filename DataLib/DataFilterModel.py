@@ -103,7 +103,7 @@ class DataFilterModel:
                 
             if re.match('[\)]', iChar):
                 tmpState = 'start'
-            elif re.match('[<=>]', iChar):
+            elif re.match('[!<=>]', iChar):
                 tmpState = 'end'
             if tmpState == 'end':
                 if tmpChar != '':
