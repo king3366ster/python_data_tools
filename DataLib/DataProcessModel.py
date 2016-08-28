@@ -107,7 +107,7 @@ def test_process(num):
 
 if __name__ == '__main__':  
 
-    t = DataSubProcessModel('test.py', process_num = 3, process_params = [(2,91),(4,83),(6,)])
+    t = DataSubProcessModel('testProcess.py', process_num = 3, process_params = [(2,91),(4,83),(6,)])
 ##    print t.run(timeout = 15)
     t.fork([3,23])
     print t.getComunication()
