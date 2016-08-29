@@ -108,6 +108,14 @@ class DataDealModel:
                     sheetName = 'Sheet1'
                 df = dataBuild.excelReader(target, sheetName)
                 self.dataMap[target] = df
+
+            decodeMap = {}
+            for coln in self.dataMap[target].columns:
+                try:
+                    decodeMap[coln] = coln.decode('utf-8', 'ignore')
+                except Exception as what:
+                    print 'unicode map error:', what
+            self.dataMap[target].rename(columns = decodeMap, inplace=True)
             print 'target node:', target, ' saved\n'
         return self.dataMap
 
