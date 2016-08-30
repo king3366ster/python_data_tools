@@ -61,8 +61,8 @@ class DataMulProcessModel:
         self.process_num = process_num
         self.process_params = process_params
         self.process_list = []  
-        self.name_pre = 'process_%03d_' % int(random.random() * 1000)   
-
+        self.name_pre = 'process_%03d_' % int(random.random() * 1000)
+        
     # isDaemon 是否是守护进程， isJoin 是否时序并行
     # isJoin True => 串行，False => 并行
     def run(self, isDaemon = False, isJoin = False): 
@@ -94,25 +94,34 @@ class DataMulProcessModel:
                 proc.join()
         print ('process stoped')
 
-def test_process(num):
+def test_process(num, msg_queue):
     print 'Process:', num
     name = multiprocessing.current_process().name
     print 'Starting:', name
     # sys.exit(0)
-    print multiprocessing.current_process().pid
-
+    pid = multiprocessing.current_process().pid
     time.sleep(2)
-
+    msg_queue.put(pid)
     print 'Exiting :', name
 
 if __name__ == '__main__':  
 
-    t = DataSubProcessModel('testProcess.py', process_num = 3, process_params = [(2,91),(4,83),(6,)])
-##    print t.run(timeout = 15)
-    t.fork([3,23])
-    print t.getComunication()
+##    t = DataSubProcessModel('testProcess.py', process_num = 3, process_params = [(2,91),(4,83),(6,)])
+####    print t.run(timeout = 15)
+##    t.fork([3,23])
+##    print t.getComunication()
 
-    t = DataMulProcessModel(test_process, process_num = 3, process_params = [(6,),(4,),(5,)])
-    t.run()
-    time.sleep(1)
+    msg_queue = multiprocessing.Queue()
+
+    t = DataMulProcessModel(test_process, process_num = 3, process_params = [(6, msg_queue),(4, msg_queue),(5, msg_queue)])
+    t.run(isJoin = False)
+
+    flag = 2
+    time.sleep(3)
+    while msg_queue.empty() != True:
+        msg = msg_queue.get()
+        print 'main proc get:%d' % msg
+##        time.sleep(1)
+        
 ##    t.stop()
+    print ('process end')
