@@ -1,7 +1,7 @@
 #!/usr/bin/python2.7 
 # -*- coding: utf-8 -*-  
 
-import os, re
+import os, re, pdb
 import time, datetime
 import MySQLdb
 from sqlalchemy import *
@@ -9,8 +9,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.dialects.mysql import DOUBLE, TIMESTAMP
 import numpy as np
 import pandas as pd
-import xlrd
-import openpyxl
+import xlrd, openpyxl
 from openpyxl.utils import get_column_letter
 
 import DataLoggingModel
@@ -197,7 +196,7 @@ class DataBuildModel:
             for colName in tb_model.c: 
                 tb_cols[str(colName).replace(tb_name + '.', '')] = True
             for colName in df_tmp.columns:
-                if str(colName) in tb_cols:
+                if unicode(colName) in tb_cols:
                     pass
                 else:
                     df_tmp = df_tmp.drop(colName, axis=1)
@@ -209,9 +208,9 @@ class DataBuildModel:
 
                 if if_exists == 'replace':
                     dtime = datetime.datetime.now()
-                    if 'updated_at' not in insert_value and 'updated_at' not in tb_cols:
+                    if 'updated_at' not in insert_value and 'updated_at' not in tb_cols and need_datetime:
                         insert_value['updated_at'] = dtime
-                    if 'created_at' not in insert_value and 'created_at' not in tb_cols:
+                    if 'created_at' not in insert_value and 'created_at' not in tb_cols and need_datetime:
                         insert_value['created_at'] = dtime
                     try:
                         tb_model.insert(values = insert_value).execute()
