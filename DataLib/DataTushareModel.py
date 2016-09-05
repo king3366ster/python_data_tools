@@ -3,6 +3,7 @@
 import numpy as np
 import pandas as pd
 import tushare as ts
+import time
 from DataTimeModel import DataTimeModel
 
 dataTime = DataTimeModel()
@@ -10,6 +11,13 @@ dataTime = DataTimeModel()
 class DataTushareModel:
     def __init__(self):
         pass
+
+    def format_quarter_to_datetime(self, df, year, quarter):
+        df_new = df.copy()
+        tmp_date = time.strftime("%Y-%m-%d", [year, quarter*3, 1, 0, 0, 0, 0, 0, 0])
+        df_new.insert(0, 'date', tmp_date)
+        df_new['date'] = pd.to_datetime(df_new['date'])
+        return df_new
 
     def format_date_index(self, df):
         count = df.count()[0]
