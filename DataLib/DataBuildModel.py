@@ -90,9 +90,10 @@ class DataBuildModel:
 
     # if_exists: append/append_ignore/replace/fail/delete
     #       need_datetime: 是否需要额外追加created_at、updated_at, unique_key有值时生效
-    def mysqlWriter(self, df, tb_name, sql_db, if_exists = 'fail', unique_key = None, need_datetime = True):
+    def mysqlWriter(self, df, tb_name, sql_db, if_exists = 'fail', unique_key = None, need_datetime = True, need_connect = True):
         # engine = create_engine('mysql://' + self._user + ':' + self._pwd + '@' + self._host + '/' + self._db + '?charset=utf8')
-        self.mysqlConnect(sql_db)
+        if need_connect:
+            self.mysqlConnect(sql_db)
 
         if unique_key is None or unique_key == '':
             if if_exists == 'append_ignore':
@@ -282,7 +283,8 @@ class DataBuildModel:
             # session.close()
         else:
             print 'unique_key is not str or list'
-        self.mysqlDestroy()     # 断开sql连接
+        if need_connect:
+            self.mysqlDestroy()     # 断开sql连接
 
     def csvReader(self, node = '1', fmt = True):
         if fmt:
