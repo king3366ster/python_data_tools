@@ -105,9 +105,9 @@ class DataBuildModel:
             print 'Mysql ', tb_name, ' write succeed (No unique_key)!'
 
         # 包含有unique key的情况
-        elif isinstance(unique_key, str) or (isinstance(unique_key, list) and len(unique_key) >= 1):
+        elif isinstance(unique_key, str) or isinstance(unique_key, unicode) or (isinstance(unique_key, list) and len(unique_key) >= 1):
 
-            if isinstance(unique_key, str):
+            if isinstance(unique_key, str) or isinstance(unique_key, unicode):
                 unique_key_list = [unique_key]
             elif isinstance(unique_key, list):
                 unique_key_list = unique_key
@@ -195,7 +195,7 @@ class DataBuildModel:
 
             # 此处去除数据库中表不存在的列
             for colName in tb_model.c: 
-                tb_cols[str(colName).replace(tb_name + '.', '')] = True
+                tb_cols[unicode(colName).replace(tb_name + '.', '')] = True
             for colName in df_tmp.columns:
                 if unicode(colName) in tb_cols:
                     pass
@@ -230,9 +230,7 @@ class DataBuildModel:
                         if need_datetime == True and (ukey == 'updated_at' or ukey == 'created_at'):
                             if ukey not in insert_value:
                                 continue
-                        if isinstance(dt_slice[ukey], unicode):
-                            compare_str = dt_slice[ukey].replace('\"','\\\"')
-                        elif isinstance(dt_slice[ukey], str):
+                        if isinstance(dt_slice[ukey], unicode) or isinstance(dt_slice[ukey], str):
                             compare_str = dt_slice[ukey].replace('\"','\\\"')
                         else:
                             compare_str = str(dt_slice[ukey])
