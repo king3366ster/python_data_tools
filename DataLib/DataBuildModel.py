@@ -3,7 +3,7 @@
 
 import os, re, pdb
 import time, datetime
-import MySQLdb
+import MySQLdb, redis
 from sqlalchemy import *
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.dialects.mysql import DOUBLE, TIMESTAMP
@@ -73,24 +73,18 @@ class DataBuildModel:
         except MySQLdb.Error,e:
             print 'Mysql Error %d: %s' % (e.args[0], e.args[1])
 
-    def mysqlQuery(self, query = ''):
+    def mysqlQuery(self, query = '', sql_db = {}, need_connect = False):
+        if need_connect:
+            self.mysqlConnect(sql_db)
 ##        self.cursor.execute(query)
 ##        data = self.cursor.fetchone()
 ##        print data
         df = pd.read_sql(query, self.conn)
         return df
 
-    def mysqlDestroy(self):
-        try:
-            self.cursor.close()
-            self.conn.close()
-            print 'Mysql destroyed %s %s' % (self._host, self._db)
-        except MySQLdb.Error,e:
-            print 'Mysql Error %d: %s' % (e.args[0], e.args[1])
-
     # if_exists: append/append_ignore/replace/fail/delete
     #       need_datetime: 是否需要额外追加created_at、updated_at, unique_key有值时生效
-    def mysqlWriter(self, df, tb_name, sql_db, if_exists = 'fail', unique_key = None, need_datetime = True, need_connect = True):
+    def mysqlWriter(self, df, tb_name, sql_db = {}, if_exists = 'fail', unique_key = None, need_datetime = True, need_connect = True):
         # engine = create_engine('mysql://' + self._user + ':' + self._pwd + '@' + self._host + '/' + self._db + '?charset=utf8')
         if need_connect:
             self.mysqlConnect(sql_db)
@@ -284,6 +278,76 @@ class DataBuildModel:
         if need_connect:
             self.mysqlDestroy()     # 断开sql连接
 
+    def mysqlDestroy(self):
+        try:
+            self.cursor.close()
+            self.conn.close()
+            print 'Mysql destroyed %s %s' % (self._host, self._db)
+        except MySQLdb.Error,e:
+            print 'Mysql Error %d: %s' % (e.args[0], e.args[1])
+
+    def redisConnect(self, redis_db, use_pool = True):
+        if 'host' in redis_db:
+            _host = redis_db['host']
+        else:
+            _host = '127.0.0.1'
+        self._host_redis = _host
+
+        if 'db' in redis_db:
+            _db = redis_db['db']
+        else:
+            _db = 0
+        self._db_redis = _db
+
+        if 'port' in redis_db:
+            _port = redis_db['port']
+        else:
+            _port = 6379
+        self._port_redis = _port
+
+        if 'auth' in redis_db:
+            _auth = redis_db['auth']
+        else:
+            _auth = None
+        self._auth_redis = _auth
+
+        try:
+            if use_pool:
+                redis_pool = redis.ConnectionPool(host = _host, port = _port, db = _db, password = _auth)
+                self.conn_redis = redis.Redis(connection_pool = redis_pool)
+            else:
+                self.conn_redis = redis.Redis(host = _host, port = _port, db = _db, password = _auth)
+            print 'Redis connected %s %s' % (_host, _port)
+        except redis.RedisError as e:
+            print 'Redis Error: %s' % e
+
+    def redisWriter(self, df, tb_name, node = '1', redis_db = {}, need_connect = True, expire = 3600 * 24 * 7):
+        if need_connect:
+            self.redisConnect(redis_db, use_pool = False)
+
+        df_json = df.to_json(force_ascii = True, date_format = 'iso', date_unit = 'ms', double_precision = 15)
+        self.conn_redis.hset(tb_name, node, df_json)
+        self.conn_redis.expire(tb_name, expire)
+
+        if need_connect:
+            self.redisDestroy()
+
+    def redisQuery(self, tb_name, node, redis_db = {}, need_connect = True):
+        if need_connect:
+            self.redisConnect(redis_db, use_pool = False)
+
+        df_json = self.conn_redis.hget(tb_name, node)
+        df_new = pd.read_json(df_json, convert_axes = True, convert_dates = True, keep_default_dates = True, numpy = False, precise_float = True, date_unit = 'ms')
+
+        if need_connect:
+            self.redisDestroy()
+
+        return df_new
+
+    def redisDestroy(self):
+        del self.conn_redis
+        print 'Redis destroyed %s %s' % (self._host_redis, self._port_redis)
+
     def csvReader(self, node = '1', fmt = True):
         if fmt:
             df = pd.read_csv(self.path + node + '.csv', index_col = 0, encoding='utf-8')
@@ -370,8 +434,27 @@ class DataBuildModel:
                     self.logger.error('write excel raw error: ' + str(col) + ' ' + str(index_row) + ' |_| reading error ' + str(what))
         wb.save(filename = '%s%s.xlsx' % (self.path, unicode(node)))
 
-    def excelReEncoding(self, node):
-        df = self.excelReader(node, fmt = False)
-        self.excelWriter(df, node + '_bak', encoding = 'gb2312')
 
 
+if __name__ == '__main__':
+    t = DataBuildModel()
+    df = pd.DataFrame(np.random.randn(10, 5),   \
+                     columns=['a', u'特别', 'c', u'好吃', 'e'])
+    df.ix[11] = np.array([1, 2, u'测试', 4, u'太赞了'])
+
+    redis_db = {
+        'host': '127.0.0.1',
+        'port': 63792,
+        # 'auth': 'foobared'
+    }
+
+    t.redisConnect(redis_db, use_pool = True)
+    for i in range(0, 20):
+        t.redisWriter(df, 'test', 'rnode%d' % i, need_connect = False)
+        # t.redisWriter(df, 'test', 'rnode%d' % i, redis_db = redis_db, need_connect = True)
+        print i
+    t.redisDestroy()
+
+    for i in range(15, 20):
+        res = t.redisQuery('test', 'rnode%d' % i, redis_db, need_connect = True)
+        print i, res
