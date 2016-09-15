@@ -141,4 +141,5 @@ if __name__ =='__main__':
 ##    print ts.get_stock_basics()
     # print ts.get_today_all()
 ##    print t.get_tick_data('600000', t_date='2016-08-23')
-    print t.get_tick_data('600000', t_date = '2013-01-07 00:00:00')
+    # print t.get_tick_data('600000', t_date = '2013-01-07 00:00:00')
+    print t.get_hist_data('hs300', start = '2012-01-01', end = '2016-09-01', ktype='D')
