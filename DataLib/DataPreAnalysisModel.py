@@ -25,6 +25,28 @@ class DataPreAnalysisModel:
         roll_obj = roll_obj.rolling(window = window)
         if type == 'mean':
             roll_obj = roll_obj.mean()
+        elif type == 'count':
+            roll_obj = roll_obj.count()
+        elif type == 'sum':
+            roll_obj = roll_obj.sum()
+        elif type == 'median':
+            roll_obj = roll_obj.median()
+        elif type == 'min':
+            roll_obj = roll_obj.min()
+        elif type == 'max':
+            roll_obj = roll_obj.max()
+        elif type == 'std':
+            roll_obj = roll_obj.std()
+        elif type == 'var':
+            roll_obj = roll_obj.var()
+        elif type == 'skew':
+            roll_obj = roll_obj.skew()
+        elif type == 'kurt':
+            roll_obj = roll_obj.kurt()
+        elif type == 'cov':
+            roll_obj = roll_obj.cov()
+        elif type == 'corr':
+            roll_obj = roll_obj.corr()
         roll_obj.rename(columns = rename_dict, inplace = True)
         return pd.concat([df, roll_obj], axis = 1)
 
