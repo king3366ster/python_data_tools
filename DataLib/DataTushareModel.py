@@ -17,6 +17,7 @@ class DataTushareModel:
         tmp_date = time.strftime("%Y-%m-%d", [year, quarter*3, 1, 0, 0, 0, 0, 0, 0])
         df_new.insert(0, 'date', tmp_date)
         df_new['date'] = pd.to_datetime(df_new['date'])
+        df_new = df_new.sort_values(by = 'date', ascending = True)
         return df_new
 
     def format_date_index(self, df):
@@ -28,7 +29,7 @@ class DataTushareModel:
         df_new = pd.DataFrame(data=df.values, index=id_series, columns=df.columns.tolist())
         for col in df_new.columns: # 保持类型
             df_new[col] = df_new[col].astype(df[col].dtype)
-        df_new.sort_values(by = 'date', ascending = True)
+        df_new = df_new.sort_values(by = 'date', ascending = True)
         return df_new
 
     def format_date_to_datetime(self, df, t_date = None):
