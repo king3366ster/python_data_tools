@@ -78,6 +78,7 @@ class DataTushareModel:
             start = dataTime.datetimeRelative(base = end, delta = -20)
         df = ts.get_hist_data(code, start, end, ktype)
         df = self.format_date_index(df)
+        df = df.sort_values(['date'], ascending=[True])
         return df
 
 # 复权数据
@@ -106,6 +107,7 @@ class DataTushareModel:
             start = dataTime.datetimeRelative(base = end, delta = -20)
         df = ts.get_h_data(code, start, end, autype = autype, index = index)
         df = self.format_date_index(df)
+        df = df.sort_values(['date'], ascending=[True])
         return df
 
 # 历史分笔
