@@ -1,4 +1,4 @@
-#!/usr/bin/python2.7 
+#!/usr/bin/python2.7
 # -*- coding: utf-8 -*-
 import numpy as np
 import pandas as pd
@@ -28,6 +28,7 @@ class DataTushareModel:
         df_new = pd.DataFrame(data=df.values, index=id_series, columns=df.columns.tolist())
         for col in df_new.columns: # 保持类型
             df_new[col] = df_new[col].astype(df[col].dtype)
+        df_new.sort_values(by = 'date', ascending = True)
         return df_new
 
     def format_date_to_datetime(self, df, t_date = None):
@@ -41,7 +42,7 @@ class DataTushareModel:
         df_new['datetime'] = df_new['datetime'] + df_new['time']
         df_new = df_new.sort_values(['datetime'], ascending=[True])
         del df_new['time']
-        
+
         return df_new
 # 历史行情
     # 参数说明：
@@ -87,7 +88,7 @@ class DataTushareModel:
         # index:Boolean，是否是大盘指数，默认为False
         # retry_count : int, 默认3,如遇网络等问题重复执行的次数
         # pause : int, 默认 0,重复请求数据过程中暂停的秒数，防止请求间隔时间太短出现的问题
-        
+
     # 返回值说明：
         # date : 交易日期 (index)
         # open : 开盘价
@@ -138,5 +139,3 @@ if __name__ =='__main__':
     # print ts.get_today_all()
 ##    print t.get_tick_data('600000', t_date='2016-08-23')
     print t.get_tick_data('600000', t_date = '2013-01-07 00:00:00')
-    
-
