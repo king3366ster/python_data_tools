@@ -10,26 +10,24 @@ class DataPreAnalysisModel:
 
     # 移动均线相关
     def add_moving_line(self, df, keys, window = 5, type = 'mean'):
-        roll_obj = df.rolling(window = window)
         key_suff = type
-        if type == 'mean':
-            roll_obj = roll_obj.mean()
-        else:
-            roll_obj = df.copy()
-
         real_keys = []
         rename_dict = {}
         for key in keys:
-            if key in roll_obj.columns:
+            if key in df.columns:
                 real_keys.append(key)
                 rename_dict[key] = '%s_%s' % (key, key_suff)
-        roll_obj = roll_obj.loc[:, real_keys]
-        roll_obj.rename(columns = rename_dict, inplace = True)
+        roll_obj = df.copy().loc[:, real_keys]
 
+        roll_obj = roll_obj.rolling(window = window)
+        if type == 'mean':
+            roll_obj = roll_obj.mean()
+        roll_obj.rename(columns = rename_dict, inplace = True)
         return pd.concat([df, roll_obj], axis = 1)
 
 if __name__ == '__main__':
     df = pd.DataFrame(np.random.randn(6,4), columns=['A', 'B', 'C', 'D'])
+    print df
     # rl = df.rolling(window = 3)
     # rm = rl.mean()
     # df = pd.concat([df, rm.loc[:,['A']]], axis=1)
