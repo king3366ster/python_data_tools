@@ -9,8 +9,11 @@ class DataPreAnalysisModel:
         pass
 
     # 移动均线相关
-    def add_moving_line(self, df, keys, window = 5, type = 'mean'):
-        key_suff = type
+    def add_moving_line(self, df, keys, window = 5, suffix = None, type = 'mean'):
+        if suffix is not None:
+            key_suff = suffix
+        else:
+            key_suff = type
         real_keys = []
         rename_dict = {}
         for key in keys:
