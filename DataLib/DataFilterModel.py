@@ -266,7 +266,6 @@ class DataFilterModel:
 
         keydest = re.findall('^\s*([\S]+)\s*=', method)
         keydest = keydest[0]
-
         method = method[method.find('=')+1:]
 
         # 先对列名、符合进行分词
@@ -310,7 +309,7 @@ class DataFilterModel:
             else:
                 tmpCharType = 0
             if tmpCharType == 0: # keyname
-
+                print df.columns
                 if re.match('^\d*(\.\d+)*$',tmpChar):
                     operation = operation + tmpChar
                 else:
@@ -318,14 +317,13 @@ class DataFilterModel:
                         keyname = tmpChar.replace('"')
                     else:
                         keyname = tmpChar
-                        
                     if df[keyname].dtype == 'timedelta64[ns]':
-                        operation = operation + 'df[\'' + keyname + '\'] / np.timedelta64(1, \'s\')'
+                        operation = operation + 'df[u\'' + keyname + '\'] / np.timedelta64(1, \'s\')'
                     else:
-                        operation = operation + 'df[\'' + keyname + '\']'                
+                        operation = operation + 'df[u\'' + keyname + '\']'                
             else:
                 operation = operation + tmpChar
-        # print operation
+        print operation
         exec(operation)
         if tmpCol.dtype == 'timedelta64[ns]':
             tmpCol = tmpCol / np.timedelta64(1, 's')
