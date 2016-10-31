@@ -1,4 +1,4 @@
-#!/usr/bin/python2.7 
+#!/usr/bin/python2.7
 # -*- coding: utf-8 -*-
 
 import os, re, time, datetime
@@ -21,7 +21,7 @@ class DataFilterModel:
         if re.search(r'^\s*\{\s*(.+)\s*\}\s*$', method): # 仅判断是否拥有{ }
             varKey = re.findall(r'^\s*\{\s*(.+)\s*\}\s*$', method)
             method = varKey[0]
-        return method    
+        return method
 
     def _parseStrArray(self, value):
         if not isinstance(value, unicode):
@@ -29,8 +29,8 @@ class DataFilterModel:
         if value.find('[') >= 0:
             value = value.replace('[','').replace(']','')
             value = value.strip()
-            temp = re.split('\s*,\s*', value)  
-            return temp  
+            temp = re.split('\s*,\s*', value)
+            return temp
         else:
             return []
 
@@ -48,7 +48,7 @@ class DataFilterModel:
         else:
             func = 'operator'   # 默认方法
             method = method
-        
+
         # 特殊变量的计算组装
         cmpVar = None
         if re.search(r'\{[^\{\}]+\}', method): # { } 包裹的特殊变量 {date|mean}, {2015-9-11 19:01:1}
@@ -85,12 +85,12 @@ class DataFilterModel:
         elif func == 'rawFunc':
             return self.filterRawFunc(df, method)
         return df
-        
+
     # 数据比较器
     # 例如'A > 2',  ' E<{A|mean} ',  ' C=”colume” ',     'operator:{A >= 2}'
     def filterOperator(self, df, method, cmpVar = None):
-        method = self._removeBraceOuter(method)
 
+        method = self._removeBraceOuter(method)
         # '(mx = "qwe") & ((zc > 2016-05-01) | (wed = zxc))' => ( df["mx"]= "qwe") & (( df["zc"]> 2016-05-01) | ( df["wed"]= zxc))
         method = unicode(method)
         tmpChar = ''
@@ -100,10 +100,10 @@ class DataFilterModel:
 
         for i in range(0, len(method)):
             iChar = method[i]
-                
+
             if re.match('[\)]', iChar):
                 tmpState = 'start'
-            elif re.match('[!<=>]', iChar):
+            elif re.match('[~!<=>]', iChar):
                 tmpState = 'end'
             if tmpState == 'end':
                 if tmpChar != '':
@@ -126,10 +126,13 @@ class DataFilterModel:
         if tmpChar != '':
             tmpChar = 'df[u\'%s\']' % tmpChar
             tmpCharPre += tmpChar
-
+        if tmpCharPre.find(']~=u') > 0:
+            tmpCharPre = tmpCharPre.replace('~=u', '.str.contains(u') + ')'
+        elif tmpCharPre.find(']*=u') > 0:
+            tmpCharPre = tmpCharPre.replace('~=u', '.str.contains(r').replace('\\\\','\\') + ')'
         operation = 'df=df[%s]' % tmpCharPre
         exec(operation)
-        return df
+        return df.copy()
         # temp = re.split('\s*(>|<|=|!)+\s*',method)
         # key = temp[0]
 
@@ -138,19 +141,19 @@ class DataFilterModel:
         # except Exception, what:
         #     print '!! Error: DataFrame doesn\'t has key ', what
         #     return df
-        
+
         # if cmpVar is not None:
         #     value = cmpVar
         # else:
         #     value = temp[2]
-        
+
         # if isinstance(value, unicode) or isinstance(value, str):
         #     value = value.replace('"','')
         # elif str(value).find('"') >= 0:    #字符串类型
         #     value = value.replace('"','')
         # else:
         #     value = float(value)
-            
+
         # if method.find('>=') >= 0:
         #     return df[df[key]>=value]
         # elif method.find('<=') >= 0:
@@ -176,7 +179,7 @@ class DataFilterModel:
         except Exception, what:
             print '!! Error: DataFrame doesn\'t has key ', what
             return df
-        
+
         value = temp[1]
         if value.find('[') >= 0:
             temp = self._parseStrArray(value)   # 字符型数组切换真实数组
@@ -320,10 +323,10 @@ class DataFilterModel:
                     if df[keyname].dtype == 'timedelta64[ns]':
                         operation = operation + 'df[u\'' + keyname + '\'] / np.timedelta64(1, \'s\')'
                     else:
-                        operation = operation + 'df[u\'' + keyname + '\']'                
+                        operation = operation + 'df[u\'' + keyname + '\']'
             else:
                 operation = operation + tmpChar
-        print operation
+        # print operation
         exec(operation)
         if tmpCol.dtype == 'timedelta64[ns]':
             tmpCol = tmpCol / np.timedelta64(1, 's')
@@ -341,8 +344,8 @@ class DataFilterModel:
             df_key = df[key]
         except Exception, what:
             print '!! Error: DataFrame doesn\'t has key ', what
-            return df  
-            
+            return df
+
         if re.search(r'\{[^\{\}]+\}', value):
             varKey = re.findall(r'\{([^\{\}]+)\}', value)
             value = varKey[0]
@@ -359,7 +362,7 @@ class DataFilterModel:
             df[key] = pd.to_datetime(df[key])
         else:
             df[key] = pd.to_datetime(df[key] * 1000000000) # 按秒级别计算
-        
+
         if method.find('>=') >= 0:
             return df[df[key] >= dtime64]
         elif method.find('<=') >= 0:
@@ -370,7 +373,7 @@ class DataFilterModel:
             return df[df[key] > dtime64]
         elif method.find('<') >= 0:
             return df[df[key] < dtime64]
-        return df   
+        return df
 
     #将所有时间类型转化为时间戳
     def transformDatetime(self, dtime):
@@ -412,4 +415,3 @@ class DataFilterModel:
         method = 'df = ' + method
         exec(method)
         return df
-        
