@@ -83,7 +83,9 @@ class DataFilterModel:
         elif func == 'nan':
             return self.filterNan(df, method)
         elif func == 'rawFunc':
-            return self.filterRawFunc(df, method)
+            return self.filterRawFunc(df, method)        
+        elif func == 'groupBy':
+            return self.filterGroupBy(df, method)
         return df
 
     # 数据比较器
@@ -391,6 +393,7 @@ class DataFilterModel:
             mtime = int(dtime)
         return mtime
 
+    # nan: {fill:1}
     def filterNan(self, df, method):
         method = self._removeBraceOuter(method)
         if method.find(':') < 0:
@@ -408,10 +411,46 @@ class DataFilterModel:
             df_new = df.copy(deep = True)
         return df_new
 
-
     # rawFunc: { df.xxx[]}
     def filterRawFunc(self, df, method):
         method = self._removeBraceOuter(method)
         method = 'df = ' + method
         exec(method)
         return df
+
+    # groupBy: {a:count}
+    def filterGroupBy(self, df, method):
+        method = self._removeBraceOuter(method)
+        if method.find(':') < 0:
+            group_key = method
+            group_method = 'count'
+        else:
+            temp = re.split('\s*:\s*', method)
+            group_key = temp[0]
+            group_method = temp[1]
+        if group_key not in df.columns:
+            return df.copy()
+        group_item = df.groupby(group_key)
+        df_new = None
+        if group_method == 'count':
+            df_new = group_item.count()
+        elif group_method == 'sum':
+            df_new = group_item.sum()
+        elif group_method == 'mean':
+            df_new = group_item.mean()
+        elif group_method == 'std':
+            df_new = group_item.std()
+        elif group_method == 'min':
+            df_new = group_item.min()
+        elif group_method == 'max':
+            df_new = group_item.min()
+        elif group_method == 'top':
+            df_new = group_item.min()
+        else:
+            df_new = group_item.count()
+        return df_new.reset_index()
+
+if __name__ == '__main__':
+    t = DataFilterModel()
+    df = pd.DataFrame({'a': [1,2,2,4,5,2,4,6], 'b': [1,3,5,5,7,4,1,4], 'c':[2,3,5,8,6,9,3,1]})
+    print t.runFilter(df, 'groupBy:{a:top}')
