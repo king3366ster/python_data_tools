@@ -62,6 +62,7 @@ class DataFilterModel:
             elif re.search(r'\d+\-\d+\-\d+', varKey):
                 func = 'timefunc'
 
+        df = df.copy(deep = True)
         if func == 'operator':
             return self.filterOperator(df, method, cmpVar)
         elif func == 'timefunc':
@@ -83,7 +84,7 @@ class DataFilterModel:
         elif func == 'nan':
             return self.filterNan(df, method)
         elif func == 'rawFunc':
-            return self.filterRawFunc(df, method)        
+            return self.filterRawFunc(df, method)
         elif func == 'groupBy':
             return self.filterGroupBy(df, method)
         return df
@@ -134,7 +135,7 @@ class DataFilterModel:
             tmpCharPre = tmpCharPre.replace('~=u', '.str.contains(r').replace('\\\\','\\') + ')'
         operation = 'df=df[%s]' % tmpCharPre
         exec(operation)
-        return df.copy()
+        return df
         # temp = re.split('\s*(>|<|=|!)+\s*',method)
         # key = temp[0]
 
@@ -429,7 +430,7 @@ class DataFilterModel:
             group_key = temp[0]
             group_method = temp[1]
         if group_key not in df.columns:
-            return df.copy()
+            return df
         group_item = df.groupby(group_key)
         df_new = None
         if group_method == 'count':
